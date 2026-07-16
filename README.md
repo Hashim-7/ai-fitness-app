@@ -16,7 +16,7 @@ The platform uses AI for calorie estimation from meal images and exercise form a
 
 ## Features
 
-- User authentication
+- JWT-based user authentication
 - Nutrition and macro tracking
 - Food database and custom foods
 - Weight tracking and fitness goals
@@ -46,6 +46,13 @@ Seed development data:
 
 ```bash
 npx prisma db seed
+```
+
+Run the development server:
+
+```bash
+cd backend
+npm run dev
 ```
 
 ## Status
