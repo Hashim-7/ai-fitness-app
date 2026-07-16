@@ -1,9 +1,19 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userRepository from "../repositories/userRepository";
+import { validatePassword, validateEmail } from "../utils/authValidation";
 
 class AuthService {
   async register(data: { email: string; username?: string; password: string }) {
+    if (!validateEmail(data.email)) {
+      throw new Error("Invalid email format");
+    }
+
+    if (!validatePassword(data.password)) {
+      throw new Error(
+        "Password must be at least 8 characters and contain uppercase, lowercase, and a number",
+      );
+    }
     const existingEmail = await userRepository.findByEmail(data.email);
 
     if (existingEmail) {

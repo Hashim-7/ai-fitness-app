@@ -26,7 +26,7 @@ describe("Auth Routes", () => {
       const response = await request(app).post("/auth/register").send({
         email: "test@example.com",
         username: "testuser",
-        password: "password123",
+        password: "Password123",
       });
 
       expect(response.status).toBe(201);
@@ -42,13 +42,13 @@ describe("Auth Routes", () => {
       await request(app).post("/auth/register").send({
         email: "test@example.com",
         username: "testuser",
-        password: "password123",
+        password: "Password123",
       });
 
       const response = await request(app).post("/auth/register").send({
         email: "test@example.com",
         username: "anotheruser",
-        password: "password123",
+        password: "Password123",
       });
 
       expect(response.status).toBe(400);
@@ -65,6 +65,80 @@ describe("Auth Routes", () => {
 
       expect(response.body.message).toBe("Email and password are required");
     });
+
+    it("should reject invalid email format", async () => {
+      const response = await request(app).post("/auth/register").send({
+        email: "not-an-email",
+        username: "testuser",
+        password: "Password123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Invalid email format");
+    });
+
+    it("should reject password with no uppercase", async () => {
+      const response = await request(app).post("/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "password123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Password does not meet requirements");
+    });
+
+    it("should reject password with no lowercase", async () => {
+      const response = await request(app).post("/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "PASSWORD123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Password does not meet requirements");
+    });
+
+    it("should reject password with no number", async () => {
+      const response = await request(app).post("/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "Password",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Password does not meet requirements");
+    });
+
+    it("should reject password shorter than 8 characters", async () => {
+      const response = await request(app).post("/auth/register").send({
+        email: "test@example.com",
+        username: "testuser",
+        password: "Pass123",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Password does not meet requirements");
+    });
+
+    it("should rate limit repeated registration attempts", async () => {
+      let response;
+
+      for (let i = 0; i < 11; i++) {
+        response = await request(app)
+          .post("/auth/register")
+          .send({
+            email: `user${i}@example.com`,
+            username: `user${i}`,
+            password: "Password123",
+          });
+      }
+
+      expect(response!.status).toBe(429);
+      expect(response!.body.message).toBe(
+        "Too many attempts, please try again later",
+      );
+    });
   });
 
   describe("POST /auth/login", () => {
@@ -72,14 +146,14 @@ describe("Auth Routes", () => {
       await request(app).post("/auth/register").send({
         email: "test@example.com",
         username: "testuser",
-        password: "password123",
+        password: "Password123",
       });
     });
 
     it("should login an existing user", async () => {
       const response = await request(app).post("/auth/login").send({
         email: "test@example.com",
-        password: "password123",
+        password: "Password123",
       });
 
       expect(response.status).toBe(200);
@@ -103,12 +177,35 @@ describe("Auth Routes", () => {
     it("should reject unknown email", async () => {
       const response = await request(app).post("/auth/login").send({
         email: "unknown@example.com",
-        password: "password123",
+        password: "Password123",
       });
 
       expect(response.status).toBe(401);
 
       expect(response.body.message).toBe("Invalid email or password");
     });
+  });
+
+  it("should rate limit repeated login attempts", async () => {
+    // First 10 requests should be allowed through
+    for (let i = 0; i < 10; i++) {
+      const response = await request(app).post("/auth/login").send({
+        email: "test@example.com",
+        password: "WrongPassword123",
+      });
+
+      expect(response.status).toBe(401);
+    }
+
+    // 11th request should be blocked by the rate limiter (assuming it doesn't count prev tests)
+    const response = await request(app).post("/auth/login").send({
+      email: "test@example.com",
+      password: "WrongPassword123",
+    });
+
+    expect(response.status).toBe(429);
+    expect(response.body.message).toBe(
+      "Too many attempts, please try again later",
+    );
   });
 });
