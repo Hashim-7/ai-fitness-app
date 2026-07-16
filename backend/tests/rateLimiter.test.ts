@@ -16,10 +16,13 @@ describe("Rate Limiter", () => {
     let response;
 
     for (let i = 0; i < 11; i++) {
-      response = await request(app).post("/test");
+      response = await request(app)
+        .post("/test")
+        .set("X-Forwarded-For", "1.1.1.1");
     }
 
     expect(response!.status).toBe(429);
+
     expect(response!.body.message).toBe(
       "Too many attempts, please try again later",
     );
