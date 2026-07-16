@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Backend dependencies
+backend/node_modules/
+
+# Backend environment
+backend/.env
+backend/.env.*
+
+# Backend build output (if applicable)
+backend/dist/
+backend/build/
+
+# IDEs
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
