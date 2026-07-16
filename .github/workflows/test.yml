@@ -56,3 +56,10 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           JWT_SECRET: test_secret
         run: npm test
+
+      - name: Run rate limiter tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+          JWT_SECRET: test_secret
+        run: npm run test:ratelimit

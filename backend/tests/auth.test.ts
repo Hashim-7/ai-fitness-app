@@ -85,7 +85,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Password does not meet requirements");
+      expect(response.body.message).toBe(
+        "Password must be at least 8 characters and contain uppercase, lowercase, and a number",
+      );
     });
 
     it("should reject password with no lowercase", async () => {
@@ -96,7 +98,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Password does not meet requirements");
+      expect(response.body.message).toBe(
+        "Password must be at least 8 characters and contain uppercase, lowercase, and a number",
+      );
     });
 
     it("should reject password with no number", async () => {
@@ -107,7 +111,9 @@ describe("Auth Routes", () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Password does not meet requirements");
+      expect(response.body.message).toBe(
+        "Password must be at least 8 characters and contain uppercase, lowercase, and a number",
+      );
     });
 
     it("should reject password shorter than 8 characters", async () => {
@@ -118,25 +124,8 @@ describe("Auth Routes", () => {
       });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Password does not meet requirements");
-    });
-
-    it("should rate limit repeated registration attempts", async () => {
-      let response;
-
-      for (let i = 0; i < 11; i++) {
-        response = await request(app)
-          .post("/auth/register")
-          .send({
-            email: `user${i}@example.com`,
-            username: `user${i}`,
-            password: "Password123",
-          });
-      }
-
-      expect(response!.status).toBe(429);
-      expect(response!.body.message).toBe(
-        "Too many attempts, please try again later",
+      expect(response.body.message).toBe(
+        "Password must be at least 8 characters and contain uppercase, lowercase, and a number",
       );
     });
   });
@@ -184,28 +173,5 @@ describe("Auth Routes", () => {
 
       expect(response.body.message).toBe("Invalid email or password");
     });
-  });
-
-  it("should rate limit repeated login attempts", async () => {
-    // First 10 requests should be allowed through
-    for (let i = 0; i < 10; i++) {
-      const response = await request(app).post("/auth/login").send({
-        email: "test@example.com",
-        password: "WrongPassword123",
-      });
-
-      expect(response.status).toBe(401);
-    }
-
-    // 11th request should be blocked by the rate limiter (assuming it doesn't count prev tests)
-    const response = await request(app).post("/auth/login").send({
-      email: "test@example.com",
-      password: "WrongPassword123",
-    });
-
-    expect(response.status).toBe(429);
-    expect(response.body.message).toBe(
-      "Too many attempts, please try again later",
-    );
   });
 });

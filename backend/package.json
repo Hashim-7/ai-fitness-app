@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "tsx watch src/index.ts",
-    "test": "vitest"
+    "test": "NODE_ENV=test vitest",
+    "test:ratelimit": "NODE_ENV=limit_test vitest tests/rateLimiter.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
