@@ -34,16 +34,20 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
+        working-directory: backend
         run: npm ci
 
       - name: Create test database schema
+        working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
         run: npx prisma migrate deploy
 
       - name: Run tests
+        working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           JWT_SECRET: test_secret
