@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =====================
+// USERS
+// =====================
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  username String? @unique
+  password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  goal         Goal?
+  weightLogs   WeightLog[]
+  diaryEntries DiaryEntry[]
+
+  // Custom foods created by user
+  createdFoods Food[]
+
+  // Favourite foods
+  favouriteFoods UserFoodFavourite[]
+}
+
+// =====================
+// USER GOALS
+// =====================
+
+model Goal {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  dailyCalories Int
+
+  dailyProtein Int
+  dailyCarbs   Int
+  dailyFat     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================
+// WEIGHT TRACKING
+// =====================
+
+model WeightLog {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  weightKg Float
+  date     DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+// =====================
+// FOOD DATABASE
+// =====================
+
+model Food {
+  id String @id @default(uuid())
+
+  name String
+
+  brand String?
+
+  // Barcode support
+  barcode String? @unique
+
+  servingSize Float
+  servingUnit String
+
+  calories Int
+
+  protein Int
+  carbs   Int
+  fat     Int
+
+  // NULL = official database food
+  // USER ID = custom food created by user
+  createdByUserId String?
+  createdByUser   User?    @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  diaryItems DiaryItem[]
+
+  favourites UserFoodFavourite[]
+
+  @@index([name])
+  @@index([createdByUserId])
+}
+
+// =====================
+// USER FOOD FAVOURITES
+// =====================
+
+model UserFoodFavourite {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  foodId String
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, foodId])
+  @@index([userId])
+}
+
+// =====================
+// DAILY DIARY
+// =====================
+
+model DiaryEntry {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime
+
+  meals DiaryItem[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+// =====================
+// FOOD LOGGED IN DIARY
+// =====================
+
+model DiaryItem {
+  id String @id @default(uuid())
+
+  diaryEntryId String
+  diaryEntry   DiaryEntry @relation(fields: [diaryEntryId], references: [id], onDelete: Cascade)
+
+  foodId String
+  food   Food   @relation(fields: [foodId], references: [id])
+
+  mealType MealType
+
+  servings Float @default(1)
+
+  calories Int
+  protein  Int
+  carbs    Int
+  fat      Int
+
+  createdAt DateTime @default(now())
+
+  @@index([diaryEntryId])
+}
+
+// =====================
+// MEAL TYPES
+// =====================
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
