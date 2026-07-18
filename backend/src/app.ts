@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import goalRoutes from "./routes/goalRoutes";
 import weightLogRoutes from "./routes/weightLogRoutes";
+import foodRoutes from "./routes/foodRoutes";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/goals", goalRoutes);
 app.use("/weight-logs", weightLogRoutes);
+app.use("/foods", foodRoutes);
 
 // Health check
 app.get("/health", (_req, res) => {
