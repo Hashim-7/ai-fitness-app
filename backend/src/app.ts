@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import goalRoutes from "./routes/goalRoutes";
+import weightLogRoutes from "./routes/weightLogRoutes";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/goals", goalRoutes);
+app.use("/weight-logs", weightLogRoutes);
 
 // Health check
 app.get("/health", (_req, res) => {
