@@ -48,6 +48,44 @@ class UserRepository {
       },
     });
   }
+
+  async updateUser(
+    id: string,
+    data: {
+      email?: string;
+      username?: string;
+    },
+  ) {
+    return prisma.user.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
+
+  async deleteUser(id: string) {
+    return prisma.user.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async findProfileById(id: string) {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
 }
 
 export default new UserRepository();
