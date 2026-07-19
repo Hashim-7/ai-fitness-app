@@ -10,11 +10,18 @@ class WeightLogController {
    */
   async createWeightLog(req: AuthRequest, res: Response) {
     try {
-      const { weightKg, date } = req.body;
+      if (req.body.date) {
+        const targetDate = new Date(req.body.date);
+        if (targetDate > new Date()) {
+          return res.status(400).json({
+            message: "Weight log date cannot be in the future",
+          });
+        }
+      }
 
       const result = await weightLogService.createWeightLog(req.userId!, {
-        weightKg,
-        date: date ? new Date(date) : undefined,
+        ...req.body,
+        date: req.body.date ? new Date(req.body.date) : undefined,
       });
 
       return res.status(201).json(result);
@@ -38,16 +45,18 @@ class WeightLogController {
    */
   async getWeightLogs(req: AuthRequest, res: Response) {
     try {
-      const { page, limit, startDate, endDate } = req.query;
-
       const result = await weightLogService.getWeightLogs(req.userId!, {
-        page: page ? Number(page) : undefined,
+        page: req.query.page ? Number(req.query.page) : undefined,
 
-        limit: limit ? Number(limit) : undefined,
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
 
-        startDate: startDate ? new Date(startDate as string) : undefined,
+        startDate: req.query.startDate
+          ? new Date(req.query.startDate as string)
+          : undefined,
 
-        endDate: endDate ? new Date(endDate as string) : undefined,
+        endDate: req.query.endDate
+          ? new Date(req.query.endDate as string)
+          : undefined,
       });
 
       return res.status(200).json(result);
@@ -100,15 +109,12 @@ class WeightLogController {
   async updateWeightLog(req: AuthRequest, res: Response) {
     try {
       const weightLogId = req.params.id as string;
-      const { weightKg, date } = req.body;
-
       const result = await weightLogService.updateWeightLog(
         req.userId!,
         weightLogId,
         {
-          weightKg,
-
-          date: date ? new Date(date) : undefined,
+          ...req.body,
+          date: req.body.date ? new Date(req.body.date) : undefined,
         },
       );
 

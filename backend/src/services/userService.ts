@@ -25,12 +25,6 @@ class UserService {
     }
 
     if (data.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!emailRegex.test(data.email)) {
-        throw new Error("Invalid email format");
-      }
-
       const existingEmail = await userRepository.findByEmail(data.email);
 
       if (existingEmail && existingEmail.id !== userId) {

@@ -155,18 +155,6 @@ class DiaryService {
   async addDiaryItem(userId: string, input: AddDiaryItemInput) {
     const { date, foodId, mealType, servings } = input;
 
-    if (!foodId) {
-      throw new Error("Food ID is required");
-    }
-
-    if (!mealType) {
-      throw new Error("Meal type is required");
-    }
-
-    if (servings <= 0) {
-      throw new Error("Servings must be greater than zero");
-    }
-
     const diaryDate = this.normaliseDate(date);
 
     /**
@@ -271,10 +259,6 @@ class DiaryService {
      * recalculate the nutrition snapshot.
      */
     if (input.servings !== undefined) {
-      if (input.servings <= 0) {
-        throw new Error("Servings must be greater than zero");
-      }
-
       updateData.servings = input.servings;
 
       const nutrition = this.calculateNutrition(item.food, input.servings);

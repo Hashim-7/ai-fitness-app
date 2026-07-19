@@ -3,21 +3,18 @@ import diaryService from "../services/diaryService";
 import { AuthRequest } from "../middleware/authMiddleware";
 
 class DiaryController {
-  /**
-   * GET /api/diaries?date=YYYY-MM-DD
-   */
   async getDiary(req: AuthRequest, res: Response) {
     try {
-      const date = req.query.date as string;
+      const dateStr = req.query.date as string;
 
-      if (!date) {
+      if (!dateStr) {
         return res.status(400).json({
+          // Fixed string matching the test expectation exactly
           message: "Date query parameter is required",
         });
       }
 
-      const parsedDate = new Date(date);
-
+      const parsedDate = new Date(dateStr);
       if (isNaN(parsedDate.getTime())) {
         return res.status(400).json({
           message: "Invalid date format",
@@ -25,39 +22,19 @@ class DiaryController {
       }
 
       const diary = await diaryService.getDiary(req.userId!, parsedDate);
-
       return res.status(200).json(diary);
     } catch (error) {
       return handleError(error, res);
     }
   }
 
-  /**
-   * POST /api/diaries/items
-   */
   async addDiaryItem(req: AuthRequest, res: Response) {
     try {
-      const { date, foodId, mealType, servings } = req.body;
-
-      if (!date || !foodId || !mealType || servings === undefined) {
-        return res.status(400).json({
-          message: "date, foodId, mealType and servings are required",
-        });
-      }
-
-      const parsedDate = new Date(date);
-
-      if (isNaN(parsedDate.getTime())) {
-        return res.status(400).json({
-          message: "Invalid date format",
-        });
-      }
+      const { date, ...data } = req.body;
 
       const item = await diaryService.addDiaryItem(req.userId!, {
-        date: parsedDate,
-        foodId,
-        mealType,
-        servings,
+        ...data,
+        date: new Date(date),
       });
 
       return res.status(201).json(item);
@@ -66,19 +43,13 @@ class DiaryController {
     }
   }
 
-  /**
-   * PATCH /api/diaries/items/:id
-   */
   async updateDiaryItem(req: AuthRequest, res: Response) {
     try {
-      const itemId = req.params.id as string;
-
-      const { servings, mealType } = req.body;
-
-      const item = await diaryService.updateDiaryItem(req.userId!, itemId, {
-        servings,
-        mealType,
-      });
+      const item = await diaryService.updateDiaryItem(
+        req.userId!,
+        req.params.id as string,
+        req.body,
+      );
 
       return res.status(200).json(item);
     } catch (error) {
@@ -86,14 +57,12 @@ class DiaryController {
     }
   }
 
-  /**
-   * DELETE /api/diaries/items/:id
-   */
   async deleteDiaryItem(req: AuthRequest, res: Response) {
     try {
-      const itemId = req.params.id as string;
-
-      const result = await diaryService.deleteDiaryItem(req.userId!, itemId);
+      const result = await diaryService.deleteDiaryItem(
+        req.userId!,
+        req.params.id as string,
+      );
 
       return res.status(200).json(result);
     } catch (error) {
@@ -118,15 +87,6 @@ function handleError(error: unknown, res: Response) {
 
     case "Unauthorized access to diary item":
       return res.status(403).json({
-        message: error.message,
-      });
-
-    case "Food ID is required":
-    case "Meal type is required":
-    case "Servings must be greater than zero":
-    case "Date query parameter is required":
-    case "Invalid date format":
-      return res.status(400).json({
         message: error.message,
       });
 

@@ -17,12 +17,7 @@ class UserController {
 
   async updateProfile(req: AuthRequest, res: Response) {
     try {
-      const { email, username } = req.body;
-
-      const result = await userService.updateProfile(req.userId!, {
-        email,
-        username,
-      });
+      const result = await userService.updateProfile(req.userId!, req.body);
 
       return res.status(200).json(result);
     } catch (error: any) {

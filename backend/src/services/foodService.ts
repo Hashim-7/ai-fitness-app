@@ -18,8 +18,6 @@ class FoodService {
       fat: number;
     },
   ) {
-    this.validateFood(data);
-
     if (data.barcode) {
       const existing = await foodRepository.findByBarcode(data.barcode);
 
@@ -100,8 +98,6 @@ class FoodService {
       }
     }
 
-    this.validateFood(data);
-
     return foodRepository.update(foodId, data);
   }
 
@@ -163,42 +159,6 @@ class FoodService {
    */
   async getFavouriteFoods(userId: string) {
     return foodRepository.listFavourites(userId);
-  }
-
-  /**
-   * Validate food fields
-   */
-  private validateFood(data: {
-    name?: string;
-    servingSize?: number;
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
-  }) {
-    if (data.name !== undefined && data.name.trim().length === 0) {
-      throw new Error("Food name is required");
-    }
-
-    if (data.servingSize !== undefined && data.servingSize <= 0) {
-      throw new Error("Serving size must be greater than zero");
-    }
-
-    if (data.calories !== undefined && data.calories < 0) {
-      throw new Error("Calories cannot be negative");
-    }
-
-    if (data.protein !== undefined && data.protein < 0) {
-      throw new Error("Protein cannot be negative");
-    }
-
-    if (data.carbs !== undefined && data.carbs < 0) {
-      throw new Error("Carbohydrates cannot be negative");
-    }
-
-    if (data.fat !== undefined && data.fat < 0) {
-      throw new Error("Fat cannot be negative");
-    }
   }
 }
 

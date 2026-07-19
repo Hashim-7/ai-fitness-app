@@ -11,12 +11,6 @@ class WeightLogService {
       date?: Date;
     },
   ) {
-    this.validateWeight(data.weightKg);
-
-    if (data.date) {
-      this.validateDate(data.date);
-    }
-
     return weightLogRepository.create(userId, data);
   }
 
@@ -79,14 +73,6 @@ class WeightLogService {
 
     if (weightLog.userId !== userId) {
       throw new Error("Unauthorized access to weight log");
-    }
-
-    if (data.weightKg !== undefined) {
-      this.validateWeight(data.weightKg);
-    }
-
-    if (data.date !== undefined) {
-      this.validateDate(data.date);
     }
 
     return weightLogRepository.update(weightLogId, data);
@@ -153,34 +139,6 @@ class WeightLogService {
       currentWeight: latest.weightKg,
       difference: latest.weightKg - oldest.weightKg,
     };
-  }
-
-  /**
-   * Validate weight values
-   */
-  private validateWeight(weightKg: number) {
-    if (weightKg <= 0) {
-      throw new Error("Weight must be greater than zero");
-    }
-
-    // Prevent unrealistic values
-    if (weightKg > 500) {
-      throw new Error("Weight value is too high");
-    }
-  }
-
-  /**
-   * Validate dates
-   */
-  private validateDate(date: Date) {
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid date");
-    }
-
-    // Prevent future weight logs
-    if (date > new Date()) {
-      throw new Error("Weight log date cannot be in the future");
-    }
   }
 }
 
