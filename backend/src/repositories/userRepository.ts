@@ -1,14 +1,4 @@
-import { PrismaClient } from "../../generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import "dotenv/config";
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
-
-const prisma = new PrismaClient({
-  adapter,
-});
+import prisma from "../lib/prisma";
 
 class UserRepository {
   async findByEmail(email: string) {
@@ -45,6 +35,44 @@ class UserRepository {
         email: data.email,
         username: data.username,
         password: data.password,
+      },
+    });
+  }
+
+  async updateUser(
+    id: string,
+    data: {
+      email?: string;
+      username?: string;
+    },
+  ) {
+    return prisma.user.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  }
+
+  async deleteUser(id: string) {
+    return prisma.user.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async findProfileById(id: string) {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }

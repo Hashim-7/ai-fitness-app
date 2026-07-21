@@ -1,0 +1,209 @@
+import { Response } from "express";
+import { AuthRequest } from "../middleware/authMiddleware";
+import weightLogService from "../services/weightLogService";
+
+class WeightLogController {
+  /**
+   * POST /weight-logs
+   *
+   * Create a new weight log
+   */
+  async createWeightLog(req: AuthRequest, res: Response) {
+    try {
+      if (req.body.date) {
+        const targetDate = new Date(req.body.date);
+        if (targetDate > new Date()) {
+          return res.status(400).json({
+            message: "Weight log date cannot be in the future",
+          });
+        }
+      }
+
+      const result = await weightLogService.createWeightLog(req.userId!, {
+        ...req.body,
+        date: req.body.date ? new Date(req.body.date) : undefined,
+      });
+
+      return res.status(201).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * GET /weight-logs
+   *
+   * Get authenticated user's weight logs
+   *
+   * Query params:
+   * ?page=1
+   * ?limit=20
+   * ?startDate=2025-01-01
+   * ?endDate=2025-02-01
+   */
+  async getWeightLogs(req: AuthRequest, res: Response) {
+    try {
+      const result = await weightLogService.getWeightLogs(req.userId!, {
+        page: req.query.page ? Number(req.query.page) : undefined,
+
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+
+        startDate: req.query.startDate
+          ? new Date(req.query.startDate as string)
+          : undefined,
+
+        endDate: req.query.endDate
+          ? new Date(req.query.endDate as string)
+          : undefined,
+      });
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * GET /weight-logs/:id
+   *
+   * Get a single weight log
+   */
+  async getWeightLog(req: AuthRequest, res: Response) {
+    try {
+      const weightLogId = req.params.id as string;
+
+      const result = await weightLogService.getWeightLog(
+        req.userId!,
+        weightLogId,
+      );
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      if (error.message === "Weight log not found") {
+        return res.status(404).json({
+          message: error.message,
+        });
+      }
+
+      if (error.message === "Unauthorized access to weight log") {
+        return res.status(403).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * PATCH /weight-logs/:id
+   *
+   * Update weight log
+   */
+  async updateWeightLog(req: AuthRequest, res: Response) {
+    try {
+      const weightLogId = req.params.id as string;
+      const result = await weightLogService.updateWeightLog(
+        req.userId!,
+        weightLogId,
+        {
+          ...req.body,
+          date: req.body.date ? new Date(req.body.date) : undefined,
+        },
+      );
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      if (error.message === "Weight log not found") {
+        return res.status(404).json({
+          message: error.message,
+        });
+      }
+
+      if (error.message === "Unauthorized access to weight log") {
+        return res.status(403).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * DELETE /weight-logs/:id
+   *
+   * Delete weight log
+   */
+  async deleteWeightLog(req: AuthRequest, res: Response) {
+    try {
+      const weightLogId = req.params.id as string;
+
+      await weightLogService.deleteWeightLog(req.userId!, weightLogId);
+
+      return res.status(200).json({
+        message: "Weight log deleted successfully",
+      });
+    } catch (error: any) {
+      if (error.message === "Weight log not found") {
+        return res.status(404).json({
+          message: error.message,
+        });
+      }
+
+      if (error.message === "Unauthorized access to weight log") {
+        return res.status(403).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * GET /weight-logs/latest
+   *
+   * Get user's latest weight
+   */
+  async getLatestWeight(req: AuthRequest, res: Response) {
+    try {
+      const result = await weightLogService.getLatestWeight(req.userId!);
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * GET /weight-logs/trend
+   *
+   * Get weight change trend
+   */
+  async getWeightTrend(req: AuthRequest, res: Response) {
+    try {
+      const result = await weightLogService.getWeightTrend(req.userId!);
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+  }
+}
+
+export default new WeightLogController();

@@ -4,19 +4,7 @@ import authService from "../services/authService";
 class AuthController {
   async register(req: Request, res: Response) {
     try {
-      const { email, username, password } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({
-          message: "Email and password are required",
-        });
-      }
-
-      const result = await authService.register({
-        email,
-        username,
-        password,
-      });
+      const result = await authService.register(req.body);
 
       return res.status(201).json(result);
     } catch (error: any) {
@@ -28,18 +16,7 @@ class AuthController {
 
   async login(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({
-          message: "Email and password are required",
-        });
-      }
-
-      const result = await authService.login({
-        email,
-        password,
-      });
+      const result = await authService.login(req.body);
 
       return res.status(200).json(result);
     } catch (error: any) {
