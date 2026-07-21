@@ -1,0 +1,13 @@
+fastapi==0.139.2
+uvicorn==0.51.0
+python-multipart==0.0.32
+
+boto3==1.43.53
+
+numpy==2.5.1
+opencv-python==5.0.0.93
+mediapipe==0.10.35
+torch==2.13.0
+
+pytest==8.4.1
+httpx==0.28.1
