@@ -1,0 +1,43 @@
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from main import app
+
+client = TestClient(app)
+
+
+def test_analyze_meal(monkeypatch):
+    def mock_download_file(s3_key: str):
+        return Path("/tmp/fake_image.jpg")
+
+    monkeypatch.setattr(
+        "routers.analyze.download_file",
+        mock_download_file,
+    )
+
+    response = client.post(
+        "/analyze/meal",
+        json={
+            "s3_key": "uploads/test-meal.jpg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "calories": 0,
+        "macros": {
+            "protein": 0,
+            "carbs": 0,
+            "fat": 0,
+        },
+    }
+
+
+def test_analyze_meal_missing_s3_key():
+    response = client.post(
+        "/analyze/meal",
+        json={},
+    )
+
+    assert response.status_code == 422
