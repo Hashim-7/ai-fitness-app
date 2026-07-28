@@ -24,13 +24,26 @@ def test_analyze_meal(monkeypatch):
     )
 
     assert response.status_code == 200
+
     assert response.json() == {
-        "calories": 0,
+        "foods": [
+            {
+                "name": "Chicken Breast",
+                "estimated_grams": 150,
+                "calories": 248,
+                "protein": 46,
+                "carbs": 0,
+                "fat": 5,
+                "confidence": 0.95,
+            }
+        ],
+        "calories": 248,
         "macros": {
-            "protein": 0,
+            "protein": 46,
             "carbs": 0,
-            "fat": 0,
+            "fat": 5,
         },
+        "confidence": 0.95,
     }
 
 

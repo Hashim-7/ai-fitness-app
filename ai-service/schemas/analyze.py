@@ -11,6 +11,24 @@ class Macros(BaseModel):
     fat: float
 
 
-class AnalyzeMealResponse(BaseModel):
+class FoodItem(BaseModel):
+    name: str
+    estimated_grams: float
+
     calories: int
+
+    protein: float
+    carbs: float
+    fat: float
+
+    confidence: float
+
+
+class AnalyzeMealResponse(BaseModel):
+    foods: list[FoodItem]
+
+    calories: int
+
     macros: Macros
+
+    confidence: float
