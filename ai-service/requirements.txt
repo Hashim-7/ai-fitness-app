@@ -4,12 +4,17 @@ python-multipart==0.0.32
 
 boto3==1.43.53
 
-numpy==2.5.1
-opencv-python==5.0.0.93
+numpy==1.26.4
+opencv-python==4.10.0.84
 
-torch
-torchvision
-ultralytics
+torch==2.6.0
+torchvision==0.21.0
+
+ultralytics==8.3.0
+
+pillow==11.1.0
+pandas==2.2.3
+scikit-learn==1.6.1
 
 pytest==8.4.1
 httpx==0.28.1
