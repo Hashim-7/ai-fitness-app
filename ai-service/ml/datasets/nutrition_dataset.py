@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import torch
 
 from PIL import Image
 from torch.utils.data import Dataset
@@ -56,10 +57,10 @@ class Nutrition5kDataset(Dataset):
             image = self.transform(image)
 
         target = {
-            "calories": item["calories"],
-            "protein": item["protein"],
-            "carbs": item["carbs"],
-            "fat": item["fat"],
-        }
+    "calories": torch.tensor(item["calories"]),
+    "protein": torch.tensor(item["protein"]),
+    "carbs": torch.tensor(item["carbs"]),
+    "fat": torch.tensor(item["fat"]),
+}
 
         return image, target
