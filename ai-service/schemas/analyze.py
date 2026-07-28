@@ -24,11 +24,10 @@ class FoodItem(BaseModel):
     confidence: float
 
 
-class AnalyzeMealResponse(BaseModel):
-    foods: list[FoodItem]
-
-    calories: int
-
-    macros: Macros
-
+class Detection(BaseModel):
+    class_id: int
     confidence: float
+
+
+class AnalyzeMealResponse(BaseModel):
+    detections: list[Detection]

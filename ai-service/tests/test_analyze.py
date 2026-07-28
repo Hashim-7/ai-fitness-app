@@ -11,9 +11,22 @@ def test_analyze_meal(monkeypatch):
     def mock_download_file(s3_key: str):
         return Path("/tmp/fake_image.jpg")
 
+    def mock_analyse(image_path):
+        return [
+            {
+                "class_id": 47,
+                "confidence": 0.91,
+            }
+        ]
+
     monkeypatch.setattr(
         "routers.analyze.download_file",
         mock_download_file,
+    )
+
+    monkeypatch.setattr(
+        "routers.analyze.food_detector.analyse",
+        mock_analyse,
     )
 
     response = client.post(
@@ -26,24 +39,12 @@ def test_analyze_meal(monkeypatch):
     assert response.status_code == 200
 
     assert response.json() == {
-        "foods": [
+        "detections": [
             {
-                "name": "Chicken Breast",
-                "estimated_grams": 150,
-                "calories": 248,
-                "protein": 46,
-                "carbs": 0,
-                "fat": 5,
-                "confidence": 0.95,
+                "class_id": 47,
+                "confidence": 0.91,
             }
-        ],
-        "calories": 248,
-        "macros": {
-            "protein": 46,
-            "carbs": 0,
-            "fat": 5,
-        },
-        "confidence": 0.95,
+        ]
     }
 
 

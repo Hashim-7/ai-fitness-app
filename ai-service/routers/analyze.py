@@ -5,11 +5,12 @@ from fastapi import APIRouter, HTTPException
 from schemas.analyze import (
     AnalyzeMealRequest,
     AnalyzeMealResponse,
-    Macros,
-    FoodItem,
+    Detection,
 )
 
 from services.s3 import download_file
+from services.detector import food_detector
+
 
 router = APIRouter(
     prefix="/analyze",
@@ -26,30 +27,14 @@ def analyze_meal(request: AnalyzeMealRequest):
     try:
         image_path = download_file(request.s3_key)
 
-        #
-        # Placeholder for food recognition model
-        #
+        detections = food_detector.analyse(image_path)
 
         return AnalyzeMealResponse(
-    foods=[
-        FoodItem(
-            name="Chicken Breast",
-            estimated_grams=150,
-            calories=248,
-            protein=46,
-            carbs=0,
-            fat=5,
-            confidence=0.95,
+            detections=[
+                Detection(**item)
+                for item in detections
+            ]
         )
-    ],
-    calories=248,
-    macros=Macros(
-        protein=46,
-        carbs=0,
-        fat=5,
-    ),
-    confidence=0.95,
-)
 
     except Exception as e:
         raise HTTPException(
