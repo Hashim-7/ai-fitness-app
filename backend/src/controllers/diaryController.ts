@@ -69,6 +69,15 @@ class DiaryController {
       return handleError(error, res);
     }
   }
+  async analysePhoto(req: AuthRequest, res: Response) {
+    try {
+      const result = await diaryService.analyseMealPhoto(req.userId!, req.body);
+
+      return res.status(201).json(result);
+    } catch (error) {
+      return handleError(error, res);
+    }
+  }
 }
 
 function handleError(error: unknown, res: Response) {

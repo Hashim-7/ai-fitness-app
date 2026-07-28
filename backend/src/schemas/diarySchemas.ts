@@ -64,6 +64,24 @@ export const updateDiaryItemSchema = z
     },
   );
 
+/**
+ * POST /diaries/analyse-photo
+ */
+export const analysePhotoSchema = z.object({
+  s3Key: z.string().min(1, "S3 key is required"),
+
+  date: z
+    .string()
+    .min(1, "Date is required")
+    .refine(
+      (value) => !isNaN(new Date(value).getTime()),
+      "Invalid date format",
+    ),
+
+  mealType: z.nativeEnum(MealType, {
+    message: "Invalid meal type",
+  }),
+});
 export type AddDiaryItemInput = z.infer<typeof addDiaryItemSchema>;
 export type UpdateDiaryItemInput = z.infer<typeof updateDiaryItemSchema>;
 export type GetDiaryInput = z.infer<typeof getDiarySchema>;
