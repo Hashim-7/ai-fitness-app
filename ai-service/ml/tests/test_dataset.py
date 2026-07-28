@@ -1,11 +1,16 @@
+from pathlib import Path
+
 from torchvision import transforms
 
 from ml.datasets.nutrition_dataset import Nutrition5kDataset
 
 
+BASE = Path("ml/tests/fixtures")
+
+
 dataset = Nutrition5kDataset(
-    metadata_file="datasets/metadata/dish_metadata_cafe1.csv",
-    image_dir="datasets/sample_images/realsense_overhead",
+    metadata_file=BASE / "dish_metadata_test.csv",
+    image_dir=BASE / "images",
     transform=transforms.ToTensor(),
 )
 
