@@ -1,15 +1,25 @@
 from pathlib import Path
 
 from ml.inference import predict
+from ml.models.calorie_model import CalorieModel
 
 
-IMAGE = Path(
-    "datasets/sample_images/realsense_overhead/dish_1561662458/rgb.png"
-)
+BASE = Path("ml/tests/fixtures")
+
+IMAGE_PATH = BASE / "images" / "dish_test_001" / "rgb.png"
 
 
 def test_prediction_output():
-    result = predict(str(IMAGE))
+
+    model = CalorieModel()
+    model.eval()
+
+    result = predict(
+        str(IMAGE_PATH),
+        model=model,
+    )
+
+    assert isinstance(result, dict)
 
     assert set(result.keys()) == {
         "calories",
@@ -21,11 +31,17 @@ def test_prediction_output():
 
 
 def test_prediction_values_are_valid():
-    result = predict(str(IMAGE))
+
+    model = CalorieModel()
+    model.eval()
+
+    result = predict(
+        str(IMAGE_PATH),
+        model=model,
+    )
 
     assert result["calories"] >= 0
     assert result["protein"] >= 0
     assert result["carbs"] >= 0
     assert result["fat"] >= 0
-
     assert 0 <= result["confidence"] <= 1

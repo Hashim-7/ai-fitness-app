@@ -68,7 +68,10 @@ def calculate_confidence(calories, protein, carbs, fat):
         2,
     )
 
-def predict(image_path: str):
+def predict(image_path: str, model=None):
+
+    if model is None:
+        model = load_model()
 
     image = Image.open(
         image_path
@@ -79,7 +82,8 @@ def predict(image_path: str):
 
     image = image.unsqueeze(0)
 
-    image = image.to(device)
+    model_device = next(model.parameters()).device
+    image = image.to(model_device)
 
 
     with torch.no_grad():
