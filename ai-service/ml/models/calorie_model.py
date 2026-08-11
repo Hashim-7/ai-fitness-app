@@ -8,6 +8,10 @@ class CalorieModel(nn.Module):
 
         self.backbone = resnet18(weights="DEFAULT")
 
+        # Start with pretrained ResNet features frozen.
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+
         in_features = self.backbone.fc.in_features
 
         self.backbone.fc = nn.Linear(
