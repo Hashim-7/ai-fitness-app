@@ -43,6 +43,30 @@ def load_model():
 
 model = load_model()
 
+VALIDATION_MAE = {
+    "calories": 131.53,
+    "protein": 9.10,
+    "carbs": 8.91,
+    "fat": 6.61,
+}
+
+
+def calculate_confidence(calories, protein, carbs, fat):
+    errors = [
+        VALIDATION_MAE["calories"] / max(calories, 1.0),
+        VALIDATION_MAE["protein"] / max(protein, 1.0),
+        VALIDATION_MAE["carbs"] / max(carbs, 1.0),
+        VALIDATION_MAE["fat"] / max(fat, 1.0),
+    ]
+
+    relative_error = sum(errors) / len(errors)
+
+    confidence = 1.0 / (1.0 + relative_error)
+
+    return round(
+        max(0.0, min(1.0, confidence)),
+        2,
+    )
 
 def predict(image_path: str):
 
@@ -71,10 +95,12 @@ def predict(image_path: str):
     carbs = max(0, float(prediction[2]))
     fat = max(0, float(prediction[3]))
 
-
-    # Temporary confidence estimate.
-    # Replace later with validation-based confidence.
-    confidence = 0.5
+    confidence = calculate_confidence(
+    calories,
+    protein,
+    carbs,
+    fat,
+)
 
 
     return {
