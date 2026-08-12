@@ -4,29 +4,27 @@ from fastapi.testclient import TestClient
 
 from main import app
 
+
 client = TestClient(app)
 
 
 def test_analyze_meal(monkeypatch):
+
     def mock_download_file(s3_key: str):
         return Path("/tmp/fake_image.jpg")
 
-    def mock_analyse(image_path):
+    def mock_analyse_meal(image_path):
         return [
             {
-                "class_id": 47,
+                "name": "cottage cheese",
+                "estimated_grams": 100,
+                "calories": 98.0,
+                "protein": 11.0,
+                "carbs": 3.4,
+                "fat": 4.3,
                 "confidence": 0.91,
             }
         ]
-    
-    def mock_predict(image_path):
-        return {
-            "calories": 500.0,
-            "protein": 30.0,
-            "carbs": 50.0,
-            "fat": 15.0,
-            "confidence": 0.8,
-        }
 
     monkeypatch.setattr(
         "routers.analyze.download_file",
@@ -34,13 +32,8 @@ def test_analyze_meal(monkeypatch):
     )
 
     monkeypatch.setattr(
-        "routers.analyze.food_detector.analyse",
-        mock_analyse,
-    )
-
-    monkeypatch.setattr(
-        "routers.analyze.predict",
-        mock_predict,
+        "routers.analyze.analyse_meal",
+        mock_analyse_meal,
     )
 
     response = client.post(
@@ -52,23 +45,21 @@ def test_analyze_meal(monkeypatch):
 
     assert response.status_code == 200
 
-    assert response.json()["nutrition"] == {
-        "calories": 500.0,
-        "protein": 30.0,
-        "carbs": 50.0,
-        "fat": 15.0,
-        "confidence": 0.8,
-    }
-
-    assert response.json()["detections"] == [
+    assert response.json()["items"] == [
         {
-            "class_id": 47,
+            "name": "cottage cheese",
+            "estimated_grams": 100,
+            "calories": 98.0,
+            "protein": 11.0,
+            "carbs": 3.4,
+            "fat": 4.3,
             "confidence": 0.91,
         }
     ]
 
 
 def test_analyze_meal_missing_s3_key():
+
     response = client.post(
         "/analyze/meal",
         json={},

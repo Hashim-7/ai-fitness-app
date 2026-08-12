@@ -8,19 +8,6 @@ class AnalyzeMealRequest(BaseModel):
 class FoodItem(BaseModel):
     name: str
     estimated_grams: float
-    calories: int
-    protein: float
-    carbs: float
-    fat: float
-    confidence: float
-
-
-class Detection(BaseModel):
-    class_id: int
-    confidence: float
-
-
-class NutritionEstimate(BaseModel):
     calories: float
     protein: float
     carbs: float
@@ -29,5 +16,4 @@ class NutritionEstimate(BaseModel):
 
 
 class AnalyzeMealResponse(BaseModel):
-    detections: list[Detection]
-    nutrition: NutritionEstimate
+    items: list[FoodItem]
