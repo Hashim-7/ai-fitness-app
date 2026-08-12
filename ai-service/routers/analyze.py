@@ -10,6 +10,7 @@ from schemas.analyze import (
 
 from services.s3 import download_file
 from services.detector import food_detector
+from ml.inference import predict
 
 
 router = APIRouter(
@@ -26,6 +27,7 @@ def analyze_meal(request: AnalyzeMealRequest):
 
     try:
         image_path = download_file(request.s3_key)
+        nutrition = predict(str(image_path))
 
         detections = food_detector.analyse(image_path)
 
@@ -33,7 +35,8 @@ def analyze_meal(request: AnalyzeMealRequest):
             detections=[
                 Detection(**item)
                 for item in detections
-            ]
+            ],
+            nutrition=nutrition,
         )
 
     except Exception as e:
