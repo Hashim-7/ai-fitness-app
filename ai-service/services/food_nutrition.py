@@ -1,4 +1,4 @@
-from services.nutrition import nutrition_db
+from services.nutrition import get_nutrition_db
 
 
 def estimate_food_nutrition(
@@ -6,7 +6,7 @@ def estimate_food_nutrition(
     estimated_grams: float,
     database=None,
 ):
-    database = database or nutrition_db
+    database = database or get_nutrition_db()
 
     nutrition = database.lookup(food_name)
 

@@ -9,13 +9,7 @@ DEFAULT_NUTRITION_FILE = Path(
 
 class NutritionDatabase:
 
-    def __init__(self, nutrition_file=None):
-
-        nutrition_file = (
-            Path(nutrition_file)
-            if nutrition_file
-            else DEFAULT_NUTRITION_FILE
-        )
+    def __init__(self, nutrition_file):
 
         self.foods = {}
 
@@ -36,4 +30,5 @@ class NutritionDatabase:
         return self.foods.get(food_name.lower())
 
 
-nutrition_db = NutritionDatabase()
+def get_nutrition_db():
+    return NutritionDatabase(DEFAULT_NUTRITION_FILE)
