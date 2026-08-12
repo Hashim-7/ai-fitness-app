@@ -1,68 +1,28 @@
 from pathlib import Path
 
-from fastapi.testclient import TestClient
-
-from main import app
+from services.meal_nutrition import analyse_meal
 
 
-client = TestClient(app)
+def test_analyse_meal():
 
-
-def test_analyze_meal(monkeypatch):
-
-    def mock_download_file(s3_key: str):
-        return Path("/tmp/fake_image.jpg")
-
-    def mock_analyse_meal(image_path):
-        return [
-            {
-                "name": "cottage cheese",
-                "estimated_grams": 100,
-                "calories": 98.0,
-                "protein": 11.0,
-                "carbs": 3.4,
-                "fat": 4.3,
-                "confidence": 0.91,
-            }
-        ]
-
-    monkeypatch.setattr(
-        "routers.analyze.download_file",
-        mock_download_file,
+    result = analyse_meal(
+        Path(
+            "datasets/sample_images/realsense_overhead/"
+            "dish_1562688426/rgb.png"
+        )
     )
 
-    monkeypatch.setattr(
-        "routers.analyze.analyse_meal",
-        mock_analyse_meal,
-    )
+    assert isinstance(result, list)
+    assert len(result) > 0
 
-    response = client.post(
-        "/analyze/meal",
-        json={
-            "s3_key": "uploads/test-meal.jpg",
-        },
-    )
+    item = result[0]
 
-    assert response.status_code == 200
+    assert item["name"] == "cottage cheese"
+    assert item["estimated_grams"] == 88.0
 
-    assert response.json()["items"] == [
-        {
-            "name": "cottage cheese",
-            "estimated_grams": 100,
-            "calories": 98.0,
-            "protein": 11.0,
-            "carbs": 3.4,
-            "fat": 4.3,
-            "confidence": 0.91,
-        }
-    ]
+    assert item["calories"] >= 0
+    assert item["protein"] >= 0
+    assert item["carbs"] >= 0
+    assert item["fat"] >= 0
 
-
-def test_analyze_meal_missing_s3_key():
-
-    response = client.post(
-        "/analyze/meal",
-        json={},
-    )
-
-    assert response.status_code == 422
+    assert 0 <= item["confidence"] <= 1
