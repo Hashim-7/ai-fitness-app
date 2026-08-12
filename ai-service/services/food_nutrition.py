@@ -4,8 +4,11 @@ from services.nutrition import nutrition_db
 def estimate_food_nutrition(
     food_name: str,
     estimated_grams: float,
+    database=None,
 ):
-    nutrition = nutrition_db.lookup(food_name)
+    database = database or nutrition_db
+
+    nutrition = database.lookup(food_name)
 
     if nutrition is None:
         return None

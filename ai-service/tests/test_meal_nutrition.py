@@ -1,12 +1,21 @@
 from pathlib import Path
 
 from services.meal_nutrition import analyse_meal
+from services.nutrition import NutritionDatabase
+
+
+BASE = Path("ml/tests/fixtures")
 
 
 def test_analyse_meal():
 
+    database = NutritionDatabase(
+        BASE / "ingredients_metadata_test.csv"
+    )
+
     result = analyse_meal(
-        Path("ml/tests/fixtures/images/dish_test_001/rgb.png")
+        BASE / "images" / "dish_test_001" / "rgb.png",
+        database=database,
     )
 
     assert isinstance(result, list)

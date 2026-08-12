@@ -2,17 +2,24 @@ import csv
 from pathlib import Path
 
 
-NUTRITION_FILE = Path(
+DEFAULT_NUTRITION_FILE = Path(
     "datasets/metadata/ingredients_metadata.csv"
 )
 
 
 class NutritionDatabase:
 
-    def __init__(self):
+    def __init__(self, nutrition_file=None):
+
+        nutrition_file = (
+            Path(nutrition_file)
+            if nutrition_file
+            else DEFAULT_NUTRITION_FILE
+        )
+
         self.foods = {}
 
-        with open(NUTRITION_FILE, newline="") as f:
+        with open(nutrition_file, newline="") as f:
             reader = csv.DictReader(f)
 
             for row in reader:

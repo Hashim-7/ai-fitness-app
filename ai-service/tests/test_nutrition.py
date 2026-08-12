@@ -1,15 +1,20 @@
-from services.food_nutrition import estimate_food_nutrition
+from pathlib import Path
+
+from services.nutrition import NutritionDatabase
 
 
-def test_food_nutrition():
+BASE = Path("ml/tests/fixtures")
 
-    result = estimate_food_nutrition(
-        "cottage cheese",
-        100,
+
+def test_nutrition_lookup():
+
+    nutrition_db = NutritionDatabase(
+        BASE / "ingredients_metadata_test.csv"
     )
 
+    result = nutrition_db.lookup("cottage cheese")
+
     assert result is not None
-    assert result["name"] == "cottage cheese"
-    assert result["estimated_grams"] == 100
-    assert result["calories"] == 98.0
-    assert result["protein"] == 11.0
+
+    assert result["calories_per_g"] == 0.98
+    assert result["protein_per_g"] == 0.11
