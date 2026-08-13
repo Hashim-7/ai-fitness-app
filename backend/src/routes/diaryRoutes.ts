@@ -6,6 +6,7 @@ import { validate } from "../middleware/validate";
 import {
   addDiaryItemSchema,
   updateDiaryItemSchema,
+  analysePhotoSchema,
 } from "../schemas/diarySchemas";
 
 const router = Router();
@@ -27,5 +28,11 @@ router.patch(
 );
 
 router.delete("/items/:id", diaryController.deleteDiaryItem);
+
+router.post(
+  "/analyse-photo",
+  validate(analysePhotoSchema),
+  diaryController.analysePhoto,
+);
 
 export default router;

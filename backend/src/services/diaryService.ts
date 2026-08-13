@@ -2,6 +2,7 @@ import { MealType } from "../../generated/prisma/client";
 import diaryRepository from "../repositories/diaryRepository";
 import foodRepository from "../repositories/foodRepository";
 import goalRepository from "../repositories/goalRepository";
+import aiService from "./aiService";
 
 interface AddDiaryItemInput {
   date: Date;
@@ -299,6 +300,19 @@ class DiaryService {
     return {
       message: "Diary item deleted successfully",
     };
+  }
+  async analyseMealPhoto(
+    userId: string,
+    input: {
+      s3Key: string;
+      date: Date;
+      mealType: MealType;
+    },
+  ) {
+    const aiResult = await aiService.analyseMeal(input.s3Key);
+
+    // temporary testing
+    return aiResult;
   }
 }
 

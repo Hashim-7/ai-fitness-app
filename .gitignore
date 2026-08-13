@@ -36,4 +36,13 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
-.mypy_cache/
+.mypy_cache/google-cloud-sdk/
+google-cloud-sdk/
+
+# ML datasets
+ai-service/datasets/
+# ML model artifacts
+ai-service/models/*.pt
+ai-service/models/*.pth
+ai-service/models/*.onnx
+ai-service/models/*.safetensors
