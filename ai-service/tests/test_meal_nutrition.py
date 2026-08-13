@@ -8,6 +8,17 @@ from services.portion_estimator import PortionEstimator
 BASE = Path("ml/tests/fixtures")
 
 
+class FakeFoodIdentifier:
+
+    def identify(self, image_path):
+        return [
+            {
+                "name": "cottage cheese",
+                "confidence": 0.91,
+            }
+        ]
+
+
 def test_analyse_meal():
 
     database = NutritionDatabase(
@@ -22,6 +33,7 @@ def test_analyse_meal():
         BASE / "images" / "dish_test_001" / "rgb.png",
         database=database,
         portion_estimator=portion_estimator,
+        food_identifier=FakeFoodIdentifier(),
     )
 
     assert isinstance(result, list)
@@ -35,4 +47,4 @@ def test_analyse_meal():
     assert item["protein"] == 11.0
     assert item["carbs"] == 3.4
     assert item["fat"] == 4.3
-    assert 0 <= item["confidence"] <= 1
+    assert item["confidence"] == 0.91

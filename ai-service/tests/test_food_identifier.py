@@ -1,12 +1,19 @@
 from pathlib import Path
 
-from services.food_identifier import food_identifier
+from services.food_identifier import FoodIdentifier
+
+
+BASE = Path("ml/tests/fixtures")
 
 
 def test_food_identifier():
 
-    result = food_identifier.identify(
-        Path("ml/tests/fixtures/images/dish_test_001/rgb.png")
+    identifier = FoodIdentifier(
+        threshold=0.0,
+    )
+
+    result = identifier.identify(
+        BASE / "images" / "dish_test_001" / "rgb.png"
     )
 
     assert isinstance(result, list)

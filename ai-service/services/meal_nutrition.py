@@ -1,15 +1,18 @@
 from pathlib import Path
 
-from services.food_identifier import food_identifier
+from services.food_identifier import food_identifier as default_food_identifier
 from services.food_nutrition import estimate_food_nutrition
 from services.nutrition import get_nutrition_db
-from services.portion_estimator import portion_estimator as default_portion_estimator
+from services.portion_estimator import (
+    portion_estimator as default_portion_estimator,
+)
 
 
 def analyse_meal(
     image_path: Path,
     database=None,
     portion_estimator=None,
+    food_identifier=None,
 ):
 
     if database is None:
@@ -17,6 +20,9 @@ def analyse_meal(
 
     if portion_estimator is None:
         portion_estimator = default_portion_estimator
+
+    if food_identifier is None:
+        food_identifier = default_food_identifier
 
     foods = food_identifier.identify(image_path)
 

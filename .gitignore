@@ -41,3 +41,8 @@ google-cloud-sdk/
 
 # ML datasets
 ai-service/datasets/
+# ML model artifacts
+ai-service/models/*.pt
+ai-service/models/*.pth
+ai-service/models/*.onnx
+ai-service/models/*.safetensors
