@@ -6,7 +6,10 @@ from pathlib import Path
 MIN_EXAMPLES = 20
 
 
-def load_ingredient_counts(metadata_path: Path):
+def load_ingredient_counts(
+    metadata_path: Path,
+    image_root: Path | None = None,
+):
     counts = Counter()
 
     with open(metadata_path, newline="") as file:
@@ -16,7 +19,20 @@ def load_ingredient_counts(metadata_path: Path):
             if not row:
                 continue
 
+            dish_id = row[0]
+
+            if image_root is not None:
+                image_path = (
+                    image_root
+                    / dish_id
+                    / "rgb.png"
+                )
+
+                if not image_path.exists():
+                    continue
+
             values = row[6:]
+            ingredients_in_dish = set()
 
             for i in range(0, len(values), 7):
 
@@ -26,16 +42,23 @@ def load_ingredient_counts(metadata_path: Path):
                 ingredient = values[i + 1].strip()
 
                 if ingredient:
-                    counts[ingredient] += 1
+                    ingredients_in_dish.add(ingredient)
+
+            for ingredient in ingredients_in_dish:
+                counts[ingredient] += 1
 
     return counts
 
 
 def build_ingredient_to_index(
     metadata_path: Path,
+    image_root: Path | None = None,
     min_examples: int = MIN_EXAMPLES,
 ):
-    counts = load_ingredient_counts(metadata_path)
+    counts = load_ingredient_counts(
+        metadata_path,
+        image_root=image_root,
+    )
 
     ingredients = sorted(
         ingredient

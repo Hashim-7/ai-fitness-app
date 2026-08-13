@@ -1,5 +1,2 @@
-dish_001,100,100,10,10,10,ingr_1,cottage cheese,100,98,4.3,3.4,11
-dish_002,100,100,10,10,10,ingr_1,cottage cheese,100,98,4.3,3.4,11
-dish_003,100,100,10,10,10,ingr_2,strawberries,100,33,0.3,8,0.7
-dish_004,100,100,10,10,10,ingr_2,strawberries,100,33,0.3,8,0.7
-dish_005,100,100,10,10,10,ingr_3,bacon,100,541,42,1.4,37
+dish_test_001,100,100,10,10,10,ingr_1,cottage cheese,50,49,2.15,1.7,5.5,ingr_2,strawberries,50,16.5,0.15,4,0.35
+dish_test_002,100,100,10,10,10,ingr_1,cottage cheese,50,49,2.15,1.7,5.5,ingr_2,strawberries,50,16.5,0.15,4,0.35
