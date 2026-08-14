@@ -4,7 +4,6 @@ import torch
 from torch.utils.data import DataLoader, random_split
 
 from ml.datasets.food_dataset import FoodDataset
-from ml.datasets.food_labels import build_ingredient_to_index
 from ml.models.food_classifier import FoodClassifier
 
 
@@ -23,7 +22,16 @@ MODEL_PATH = Path(
 BATCH_SIZE = 32
 VALIDATION_SPLIT = 0.2
 SEED = 42
-THRESHOLD = 0.5
+
+THRESHOLDS = [
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+]
 
 
 def main():
@@ -74,9 +82,8 @@ def main():
 
     model.eval()
 
-    total_labels = 0
-    true_positives = 0
-    predicted_labels = 0
+    all_probabilities = []
+    all_targets = []
 
     with torch.no_grad():
 
@@ -86,49 +93,81 @@ def main():
 
             probabilities = torch.sigmoid(logits)
 
-            predictions = (
-                probabilities >= THRESHOLD
-            ).float()
-
-            true_positives += (
-                predictions * targets
-            ).sum().item()
-
-            predicted_labels += (
-                predictions.sum().item()
+            all_probabilities.append(
+                probabilities
             )
 
-            total_labels += targets.sum().item()
+            all_targets.append(targets)
 
-    precision = (
-        true_positives / predicted_labels
-        if predicted_labels
-        else 0.0
+    probabilities = torch.cat(
+        all_probabilities
     )
 
-    recall = (
-        true_positives / total_labels
-        if total_labels
-        else 0.0
-    )
-
-    f1 = (
-        2 * precision * recall / (precision + recall)
-        if precision + recall
-        else 0.0
+    targets = torch.cat(
+        all_targets
     )
 
     print(
-        f"Validation precision: {precision:.4f}"
+        f"Validation images: {len(validation_dataset)}"
     )
 
     print(
-        f"Validation recall:    {recall:.4f}"
+        f"Number of classes: {len(ingredient_to_index)}"
+    )
+
+    print()
+
+    print(
+        "Threshold | Precision | Recall | F1"
     )
 
     print(
-        f"Validation F1:         {f1:.4f}"
+        "----------|-----------|--------|------"
     )
+
+    for threshold in THRESHOLDS:
+
+        predictions = (
+            probabilities >= threshold
+        ).float()
+
+        true_positives = (
+            predictions * targets
+        ).sum().item()
+
+        predicted_labels = (
+            predictions.sum().item()
+        )
+
+        total_labels = (
+            targets.sum().item()
+        )
+
+        precision = (
+            true_positives / predicted_labels
+            if predicted_labels
+            else 0.0
+        )
+
+        recall = (
+            true_positives / total_labels
+            if total_labels
+            else 0.0
+        )
+
+        f1 = (
+            2 * precision * recall
+            / (precision + recall)
+            if precision + recall
+            else 0.0
+        )
+
+        print(
+            f"{threshold:9.1f} | "
+            f"{precision:9.4f} | "
+            f"{recall:6.4f} | "
+            f"{f1:4.4f}"
+        )
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ class FoodIdentifier:
     def __init__(
         self,
         model_path: Path = DEFAULT_MODEL_PATH,
-        threshold: float = 0.5,
+        threshold: float = 0.3,
     ):
         self.model_path = Path(model_path)
         self.threshold = threshold
