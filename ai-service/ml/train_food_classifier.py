@@ -18,7 +18,7 @@ IMAGE_ROOT = Path(
 )
 
 MODEL_OUTPUT = Path(
-    "models/food_classifier.pt"
+    "models/food_classifier_weighted.pt"
 )
 
 BATCH_SIZE = 32
@@ -92,7 +92,28 @@ def main():
 
     model.to(device)
 
-    criterion = nn.BCEWithLogitsLoss()
+    class_counts = torch.zeros(
+        len(ingredient_to_index),
+        dtype=torch.float32,
+    )
+
+    for _, labels in dataset.samples:
+        for label in labels:
+            class_counts[label] += 1
+
+    total_images = len(dataset)
+
+    negative_counts = (
+        total_images - class_counts
+    )
+
+    positive_weights = torch.sqrt(
+        negative_counts / class_counts
+    )
+
+    criterion = nn.BCEWithLogitsLoss(
+        pos_weight=positive_weights.to(device)
+    )
 
     optimizer = torch.optim.Adam(
         model.parameters(),

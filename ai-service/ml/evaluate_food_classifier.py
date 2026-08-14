@@ -16,7 +16,7 @@ IMAGE_ROOT = Path(
 )
 
 MODEL_PATH = Path(
-    "models/food_classifier.pt"
+    "models/food_classifier_weighted.pt"
 )
 
 BATCH_SIZE = 32
@@ -33,6 +33,34 @@ THRESHOLDS = [
     0.7,
 ]
 
+SELECTED_THRESHOLD = 0.5
+
+
+def calculate_metrics(predictions, targets):
+    true_positives = (predictions * targets).sum(dim=0)
+    predicted = predictions.sum(dim=0)
+    actual = targets.sum(dim=0)
+
+    precision = torch.where(
+        predicted > 0,
+        true_positives / predicted,
+        torch.zeros_like(predicted),
+    )
+
+    recall = torch.where(
+        actual > 0,
+        true_positives / actual,
+        torch.zeros_like(actual),
+    )
+
+    f1 = torch.where(
+        precision + recall > 0,
+        2 * precision * recall / (precision + recall),
+        torch.zeros_like(precision),
+    )
+
+    return precision, recall, f1, actual
+
 
 def main():
 
@@ -44,6 +72,11 @@ def main():
     ingredient_to_index = checkpoint[
         "ingredient_to_index"
     ]
+
+    index_to_ingredient = {
+        index: name
+        for name, index in ingredient_to_index.items()
+    }
 
     dataset = FoodDataset(
         image_root=IMAGE_ROOT,
@@ -93,19 +126,11 @@ def main():
 
             probabilities = torch.sigmoid(logits)
 
-            all_probabilities.append(
-                probabilities
-            )
-
+            all_probabilities.append(probabilities)
             all_targets.append(targets)
 
-    probabilities = torch.cat(
-        all_probabilities
-    )
-
-    targets = torch.cat(
-        all_targets
-    )
+    probabilities = torch.cat(all_probabilities)
+    targets = torch.cat(all_targets)
 
     print(
         f"Validation images: {len(validation_dataset)}"
@@ -135,13 +160,8 @@ def main():
             predictions * targets
         ).sum().item()
 
-        predicted_labels = (
-            predictions.sum().item()
-        )
-
-        total_labels = (
-            targets.sum().item()
-        )
+        predicted_labels = predictions.sum().item()
+        actual_labels = targets.sum().item()
 
         precision = (
             true_positives / predicted_labels
@@ -150,8 +170,8 @@ def main():
         )
 
         recall = (
-            true_positives / total_labels
-            if total_labels
+            true_positives / actual_labels
+            if actual_labels
             else 0.0
         )
 
@@ -166,7 +186,84 @@ def main():
             f"{threshold:9.1f} | "
             f"{precision:9.4f} | "
             f"{recall:6.4f} | "
-            f"{f1:4.4f}"
+            f"{f1:.4f}"
+        )
+
+    print()
+    print(
+        f"Per-class metrics at threshold {SELECTED_THRESHOLD}"
+    )
+
+    predictions = (
+        probabilities >= SELECTED_THRESHOLD
+    ).float()
+
+    precision, recall, f1, support = calculate_metrics(
+        predictions,
+        targets,
+    )
+
+    class_metrics = []
+
+    for index in range(len(index_to_ingredient)):
+
+        class_metrics.append(
+            {
+                "name": index_to_ingredient[index],
+                "support": int(support[index].item()),
+                "precision": precision[index].item(),
+                "recall": recall[index].item(),
+                "f1": f1[index].item(),
+            }
+        )
+
+    print()
+    print("Worst 20 classes by F1")
+    print(
+        "Class                          Support   "
+        "Precision   Recall      F1"
+    )
+    print(
+        "-----------------------------  -------   "
+        "---------   ------   ------"
+    )
+
+    for item in sorted(
+        class_metrics,
+        key=lambda x: x["f1"],
+    )[:20]:
+
+        print(
+            f"{item['name']:<29} "
+            f"{item['support']:>7}   "
+            f"{item['precision']:>9.4f}   "
+            f"{item['recall']:>6.4f}   "
+            f"{item['f1']:>6.4f}"
+        )
+
+    print()
+    print("Best 20 classes by F1")
+    print(
+        "Class                          Support   "
+        "Precision   Recall      F1"
+    )
+    print(
+        "-----------------------------  -------   "
+        "---------   ------   ------"
+    )
+
+    for item in sorted(
+        class_metrics,
+        key=lambda x: x["f1"],
+        reverse=True,
+    )[:20]:
+
+        print(
+            f"{item['name']:<29} "
+            f"{item['support']:>7}   "
+            f"{item['precision']:>9.4f}   "
+            f"{item['recall']:>6.4f}   "
+            f"{item['f1']:>6.4f}"
         )
 
 

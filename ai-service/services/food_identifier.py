@@ -7,7 +7,7 @@ from torchvision import transforms
 from ml.models.food_classifier import FoodClassifier
 
 
-DEFAULT_MODEL_PATH = Path("models/food_classifier.pt")
+DEFAULT_MODEL_PATH = Path("models/food_classifier_weighted.pt")
 
 
 class FoodIdentifier:
@@ -15,7 +15,7 @@ class FoodIdentifier:
     def __init__(
         self,
         model_path: Path = DEFAULT_MODEL_PATH,
-        threshold: float = 0.3,
+        threshold: float = 0.5,
     ):
         self.model_path = Path(model_path)
         self.threshold = threshold
