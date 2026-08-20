@@ -59,7 +59,7 @@ jobs:
           AWS_REGION: eu-west-1
           AWS_ACCESS_KEY_ID: test-access-key
           AWS_SECRET_ACCESS_KEY: test-secret-key
-        run: npm run test:all
+        run: npm run test:all -- --exclude tests/ai.integration.test.ts
 
   ai-integration:
     name: AI Integration Test
