@@ -4,3 +4,5 @@ boto3==1.43.53
 pydantic
 python-dotenv
 google-genai
+pytest==8.4.1
+httpx

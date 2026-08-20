@@ -1,11 +1,12 @@
-name: Backend Tests
+name: Tests
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  backend-tests:
+    name: Backend Tests
     runs-on: ubuntu-latest
 
     services:
@@ -15,10 +16,8 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test
-
         ports:
           - 5432:5432
-
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -36,7 +35,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         working-directory: backend
         run: npm ci
 
@@ -50,41 +49,110 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
         run: npx prisma migrate deploy
 
-      - name: Run tests
+      - name: Run backend tests
         working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           JWT_SECRET: test_secret
           NODE_ENV: test
-
-          # AWS test configuration
           AWS_REGION: eu-west-1
           AWS_ACCESS_KEY_ID: test-access-key
           AWS_SECRET_ACCESS_KEY: test-secret-key
-
         run: npm run test:all
 
-  ai-service-tests:
-    name: AI Service Tests
+  ai-integration:
+    name: AI Integration Test
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ai-service
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install AI service dependencies
+        working-directory: ai-service
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pytest
-        run: pytest
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Create test database schema
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+        run: npx prisma migrate deploy
+
+      - name: Start AI service
+        working-directory: ai-service
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AWS_REGION: eu-west-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          uvicorn main:app --host 0.0.0.0 --port 8001 > /tmp/ai-service.log 2>&1 &
+
+          for i in {1..30}; do
+            if curl -sf http://localhost:8001/health > /dev/null; then
+              echo "AI service is ready"
+              break
+            fi
+
+            echo "Waiting for AI service..."
+            sleep 2
+          done
+
+          curl -sf http://localhost:8001/health
+
+      - name: Run AI integration test
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+          JWT_SECRET: test_secret
+          NODE_ENV: test
+
+          AWS_REGION: eu-west-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+          AI_TEST_S3_KEY: ${{ secrets.AI_TEST_S3_KEY }}
+
+          AI_SERVICE_URL: http://localhost:8001
+        run: npx vitest run tests/ai.integration.test.ts --testTimeout=120000
+
+      - name: Show AI service logs on failure
+        if: failure()
+        run: cat /tmp/ai-service.log
