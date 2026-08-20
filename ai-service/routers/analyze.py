@@ -1,43 +1,47 @@
-from pathlib import Path
-
 from fastapi import APIRouter, HTTPException
 
-from schemas.analyze import (
-    AnalyzeMealRequest,
-    AnalyzeMealResponse,
-)
+from pydantic import BaseModel
 
-from services.s3 import download_file
-from services.meal_nutrition import analyse_meal
+from services.s3 import get_image_bytes
+from services.gemini import analyse_meal
 
 
 router = APIRouter(
     prefix="/analyze",
-    tags=["Analysis"],
+    tags=["analysis"],
 )
 
 
-@router.post(
-    "/meal",
-    response_model=AnalyzeMealResponse,
-)
-def analyze_meal(request: AnalyzeMealRequest):
+class MealAnalysisRequest(BaseModel):
+    s3_key: str
+
+
+@router.post("/meal")
+async def analyze_meal(request: MealAnalysisRequest):
 
     try:
-        image_path = download_file(request.s3_key)
+        image_bytes = get_image_bytes(request.s3_key)
 
-        items = analyse_meal(image_path)
-
-        return AnalyzeMealResponse(
-            items=items,
+        result = analyse_meal(
+            image_bytes=image_bytes,
+            mime_type="image/jpeg",
         )
 
-    except Exception as e:
+        return {
+            "foods": [
+                food.model_dump()
+                for food in result.foods
+            ],
+            "total_calories": result.total_calories,
+            "total_protein": result.total_protein,
+            "total_carbs": result.total_carbs,
+            "total_fat": result.total_fat,
+        }
+
+    except Exception as error:
+        print(f"Meal analysis failed: {error}")
+
         raise HTTPException(
             status_code=500,
-            detail=str(e),
+            detail="Failed to analyse meal",
         )
-
-    finally:
-        if "image_path" in locals():
-            Path(image_path).unlink(missing_ok=True)
