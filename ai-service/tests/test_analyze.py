@@ -14,17 +14,18 @@ def test_analyze_meal(monkeypatch):
         return Path("/tmp/fake_image.jpg")
 
     def mock_analyse_meal(image_path):
-        return [
-            {
-                "name": "cottage cheese",
-                "estimated_grams": 100,
-                "calories": 98.0,
-                "protein": 11.0,
-                "carbs": 3.4,
-                "fat": 4.3,
-                "confidence": 0.91,
-            }
-        ]
+        return {
+            "items": [
+                {
+                    "name": "cottage cheese",
+                    "confidence": 0.91,
+                }
+            ],
+            "calories": 98.0,
+            "protein": 11.0,
+            "carbs": 3.4,
+            "fat": 4.3,
+        }
 
     monkeypatch.setattr(
         "routers.analyze.download_file",
@@ -45,17 +46,18 @@ def test_analyze_meal(monkeypatch):
 
     assert response.status_code == 200
 
-    assert response.json()["items"] == [
-        {
-            "name": "cottage cheese",
-            "estimated_grams": 100,
-            "calories": 98.0,
-            "protein": 11.0,
-            "carbs": 3.4,
-            "fat": 4.3,
-            "confidence": 0.91,
-        }
-    ]
+    assert response.json() == {
+        "items": [
+            {
+                "name": "cottage cheese",
+                "confidence": 0.91,
+            }
+        ],
+        "calories": 98.0,
+        "protein": 11.0,
+        "carbs": 3.4,
+        "fat": 4.3,
+    }
 
 
 def test_analyze_meal_missing_s3_key():

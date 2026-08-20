@@ -1,50 +1,32 @@
 from pathlib import Path
 
+from ml.inference import predict
 from services.food_identifier import food_identifier as default_food_identifier
-from services.food_nutrition import estimate_food_nutrition
-from services.nutrition import get_nutrition_db
-from services.portion_estimator import (
-    portion_estimator as default_portion_estimator,
-)
 
 
 def analyse_meal(
     image_path: Path,
-    database=None,
-    portion_estimator=None,
     food_identifier=None,
 ):
-
-    if database is None:
-        database = get_nutrition_db()
-
-    if portion_estimator is None:
-        portion_estimator = default_portion_estimator
-
     if food_identifier is None:
         food_identifier = default_food_identifier
 
     foods = food_identifier.identify(image_path)
 
-    items = []
+    nutrition = predict(str(image_path))
 
-    for food in foods:
+    items = [
+        {
+            "name": food["name"],
+            "confidence": food["confidence"],
+        }
+        for food in foods
+    ]
 
-        estimated_grams = portion_estimator.estimate(
-            image_path
-        )
-
-        nutrition = estimate_food_nutrition(
-            food["name"],
-            estimated_grams,
-            database=database,
-        )
-
-        if nutrition is None:
-            continue
-
-        nutrition["confidence"] = food["confidence"]
-
-        items.append(nutrition)
-
-    return items
+    return {
+        "items": items,
+        "calories": nutrition["calories"],
+        "protein": nutrition["protein"],
+        "carbs": nutrition["carbs"],
+        "fat": nutrition["fat"],
+    }

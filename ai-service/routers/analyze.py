@@ -23,14 +23,14 @@ router = APIRouter(
 )
 def analyze_meal(request: AnalyzeMealRequest):
 
+    image_path = None
+
     try:
         image_path = download_file(request.s3_key)
 
-        items = analyse_meal(image_path)
+        result = analyse_meal(image_path)
 
-        return AnalyzeMealResponse(
-            items=items,
-        )
+        return AnalyzeMealResponse(**result)
 
     except Exception as e:
         raise HTTPException(
@@ -39,5 +39,5 @@ def analyze_meal(request: AnalyzeMealRequest):
         )
 
     finally:
-        if "image_path" in locals():
+        if image_path is not None:
             Path(image_path).unlink(missing_ok=True)
