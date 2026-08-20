@@ -136,7 +136,11 @@ jobs:
             sleep 2
           done
 
-          curl -sf http://localhost:8001/health
+          echo "=== AI SERVICE LOG ==="
+          cat /tmp/ai-service.log
+
+          echo "=== HEALTH CHECK ==="
+          curl -v http://localhost:8001/health
 
       - name: Run AI integration test
         working-directory: backend
@@ -144,13 +148,10 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
           JWT_SECRET: test_secret
           NODE_ENV: test
-
           AWS_REGION: eu-west-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
           AI_TEST_S3_KEY: ${{ secrets.AI_TEST_S3_KEY }}
-
           AI_SERVICE_URL: http://localhost:8001
         run: npx vitest run tests/ai.integration.test.ts --testTimeout=120000
 
