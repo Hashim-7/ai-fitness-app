@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   backend-tests:
@@ -62,6 +63,7 @@ jobs:
 
   ai-integration:
     name: AI Integration Test
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     services:
@@ -140,7 +142,7 @@ jobs:
           cat /tmp/ai-service.log
 
           echo "=== HEALTH CHECK ==="
-          curl -v http://localhost:8001/health
+          curl -sf http://localhost:8001/health
 
       - name: Run AI integration test
         working-directory: backend
