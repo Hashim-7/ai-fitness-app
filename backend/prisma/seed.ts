@@ -9,6 +9,9 @@ async function main() {
   // CLEAN DATABASE
   // =====================
 
+  await prisma.workoutItem.deleteMany();
+  await prisma.workoutEntry.deleteMany();
+  await prisma.exercise.deleteMany();
   await prisma.diaryItem.deleteMany();
   await prisma.diaryEntry.deleteMany();
   await prisma.userFoodFavourite.deleteMany();

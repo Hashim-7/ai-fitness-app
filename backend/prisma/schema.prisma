@@ -32,6 +32,12 @@ model User {
 
   // Favourite foods
   favouriteFoods UserFoodFavourite[]
+
+  // Custom exercises created by user
+  createdExercises Exercise[]
+
+  // Workout entries created by user
+  workoutEntries WorkoutEntry[]
 }
 
 // =====================
@@ -184,4 +190,100 @@ enum MealType {
   LUNCH
   DINNER
   SNACK
+}
+
+// =====================
+// EXERCISE DATABASE
+// =====================
+
+model Exercise {
+  id String @id @default(uuid())
+
+  name        String
+  category    ExerciseCategory @default(STRENGTH)
+  muscleGroup MuscleGroup      @default(FULL_BODY)
+  equipment   String?
+
+  // NULL = official exercise database item
+  // USER ID = custom exercise created by user
+  createdByUserId String?
+  createdByUser   User?    @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workoutItems WorkoutItem[]
+
+  @@index([name])
+  @@index([category])
+  @@index([muscleGroup])
+  @@index([createdByUserId])
+}
+
+// =====================
+// DAILY WORKOUT ENTRY
+// =====================
+
+model WorkoutEntry {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name String?
+  date DateTime
+
+  exercises WorkoutItem[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+// =====================
+// EXERCISE LOGGED IN WORKOUT
+// =====================
+
+model WorkoutItem {
+  id String @id @default(uuid())
+
+  workoutEntryId String
+  workoutEntry   WorkoutEntry @relation(fields: [workoutEntryId], references: [id], onDelete: Cascade)
+
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  sets            Int    @default(1)
+  reps            Int?
+  weightKg        Float?
+  durationSeconds Int?
+  caloriesBurned  Int?
+  notes           String?
+
+  createdAt DateTime @default(now())
+
+  @@index([workoutEntryId])
+}
+
+// =====================
+// WORKOUT ENUMS
+// =====================
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  BODYWEIGHT
+  CALISTHENICS
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  ARMS
+  CORE
+  FULL_BODY
+  CARDIO
 }
