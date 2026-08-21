@@ -128,6 +128,11 @@ export default function NutritionPage() {
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState("");
 
+  const [editingItem, setEditingItem] = useState<DiaryItem | null>(null);
+  const [editServings, setEditServings] = useState(1);
+  const [editMeal, setEditMeal] = useState("BREAKFAST");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   async function loadDiary() {
     const result = await apiFetch<DiaryResponse>(`/diaries?date=${today()}`);
 
@@ -205,6 +210,45 @@ export default function NutritionPage() {
       setAddError(err instanceof Error ? err.message : "Unable to add food.");
     } finally {
       setAdding(false);
+    }
+  }
+
+  async function handleUpdateDiaryItem(
+    itemId: string,
+    input: {
+      servings?: number;
+      mealType?: string;
+    },
+  ) {
+    try {
+      setAddError("");
+
+      await apiFetch(`/diaries/items/${itemId}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      });
+
+      await loadDiary();
+    } catch (err) {
+      setAddError(
+        err instanceof Error ? err.message : "Unable to update food.",
+      );
+    }
+  }
+
+  async function handleDeleteDiaryItem(itemId: string) {
+    try {
+      setAddError("");
+
+      await apiFetch(`/diaries/items/${itemId}`, {
+        method: "DELETE",
+      });
+
+      await loadDiary();
+    } catch (err) {
+      setAddError(
+        err instanceof Error ? err.message : "Unable to delete food.",
+      );
     }
   }
 
@@ -480,8 +524,8 @@ export default function NutritionPage() {
                           )}
 
                           <p className="mt-1 text-xs text-zinc-500">
-                            {item.servings}{" "}
-                            {item.servings === 1 ? "serving" : "servings"}
+                            {item.servings} × {item.food.servingSize}{" "}
+                            {item.food.servingUnit}
                           </p>
                         </div>
 
@@ -493,6 +537,39 @@ export default function NutritionPage() {
                           <p className="text-xs text-zinc-500">
                             {formatNumber(item.protein)}g protein
                           </p>
+
+                          <div className="mt-2 flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingItem(item);
+                                setEditServings(item.servings);
+                                setEditMeal(item.mealType.toUpperCase());
+                                setAddError("");
+                              }}
+                              className="text-xs font-medium text-zinc-600 hover:text-zinc-900"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const confirmed = window.confirm(
+                                  `Remove ${item.food.name} from your diary?`,
+                                );
+
+                                if (!confirmed) {
+                                  return;
+                                }
+
+                                await handleDeleteDiaryItem(item.id);
+                              }}
+                              className="text-xs font-medium text-red-600 hover:text-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -666,25 +743,60 @@ export default function NutritionPage() {
                     Servings
                   </label>
 
+                  <p className="mt-1 text-xs text-zinc-500">
+                    1 serving = {selectedFood.servingSize}{" "}
+                    {selectedFood.servingUnit}
+                  </p>
+
                   <input
                     type="number"
                     min="0.1"
                     step="0.1"
                     value={servings}
-                    onChange={(event) =>
-                      setServings(Math.max(0.1, Number(event.target.value)))
-                    }
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+
+                      setServings(
+                        Number.isFinite(value) && value > 0 ? value : 0.1,
+                      );
+                    }}
                     className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
                   />
                 </div>
 
                 <div className="mt-4 rounded-lg bg-white p-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Total calories</span>
+                    <span className="text-zinc-500">
+                      {servings} × {selectedFood.servingSize}{" "}
+                      {selectedFood.servingUnit}
+                    </span>
 
                     <span className="font-semibold">
                       {formatNumber(selectedFood.calories * servings)} kcal
                     </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 gap-3 border-t border-zinc-100 pt-3 text-xs">
+                    <div>
+                      <p className="text-zinc-500">Protein</p>
+                      <p className="mt-1 font-semibold">
+                        {formatNumber(selectedFood.protein * servings)}g
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-zinc-500">Carbs</p>
+                      <p className="mt-1 font-semibold">
+                        {formatNumber(selectedFood.carbs * servings)}g
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-zinc-500">Fat</p>
+                      <p className="mt-1 font-semibold">
+                        {formatNumber(selectedFood.fat * servings)}g
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -704,6 +816,163 @@ export default function NutritionPage() {
                 {addError}
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold">Edit food</h2>
+
+                <p className="mt-1 text-sm text-zinc-500">
+                  Update the amount or meal.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="rounded-lg px-2 py-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Food */}
+            <div className="mt-6 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <p className="font-semibold">{editingItem.food.name}</p>
+
+              {editingItem.food.brand && (
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {editingItem.food.brand}
+                </p>
+              )}
+
+              <p className="mt-2 text-xs text-zinc-500">
+                1 serving = {editingItem.food.servingSize}{" "}
+                {editingItem.food.servingUnit}
+              </p>
+            </div>
+
+            {/* Meal */}
+            <div className="mt-5">
+              <label className="text-sm font-medium text-zinc-700">Meal</label>
+
+              <select
+                value={editMeal}
+                onChange={(event) => setEditMeal(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+              >
+                {mealOrder.map((meal) => (
+                  <option key={meal} value={meal}>
+                    {mealLabel(meal)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Servings */}
+            <div className="mt-5">
+              <label className="text-sm font-medium text-zinc-700">
+                Servings
+              </label>
+
+              <p className="mt-1 text-xs text-zinc-500">
+                1 serving = {editingItem.food.servingSize}{" "}
+                {editingItem.food.servingUnit}
+              </p>
+
+              <input
+                type="number"
+                min="0.1"
+                step="0.1"
+                value={editServings}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+
+                  setEditServings(
+                    Number.isFinite(value) && value > 0 ? value : 0.1,
+                  );
+                }}
+                className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-zinc-900"
+              />
+            </div>
+
+            {/* Preview */}
+            <div className="mt-4 rounded-lg bg-zinc-50 p-4">
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-500">
+                  {editServings} × {editingItem.food.servingSize}{" "}
+                  {editingItem.food.servingUnit}
+                </span>
+
+                <span className="font-semibold">
+                  {formatNumber(editingItem.food.calories * editServings)} kcal
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-3 gap-3 border-t border-zinc-200 pt-3 text-xs">
+                <div>
+                  <p className="text-zinc-500">Protein</p>
+
+                  <p className="mt-1 font-semibold">
+                    {formatNumber(editingItem.food.protein * editServings)}g
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500">Carbs</p>
+
+                  <p className="mt-1 font-semibold">
+                    {formatNumber(editingItem.food.carbs * editServings)}g
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-zinc-500">Fat</p>
+
+                  <p className="mt-1 font-semibold">
+                    {formatNumber(editingItem.food.fat * editServings)}g
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="flex-1 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={savingEdit}
+                onClick={async () => {
+                  try {
+                    setSavingEdit(true);
+                    setAddError("");
+
+                    await handleUpdateDiaryItem(editingItem.id, {
+                      servings: editServings,
+                      mealType: editMeal,
+                    });
+
+                    setEditingItem(null);
+                  } finally {
+                    setSavingEdit(false);
+                  }
+                }}
+                className="flex-1 rounded-lg bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
+              >
+                {savingEdit ? "Saving..." : "Save changes"}
+              </button>
+            </div>
           </div>
         </div>
       )}
