@@ -8,6 +8,8 @@ import weightLogRoutes from "./routes/weightLogRoutes";
 import foodRoutes from "./routes/foodRoutes";
 import diaryRoutes from "./routes/diaryRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
+import exerciseRoutes from "./routes/exerciseRoutes";
+import workoutRoutes from "./routes/workoutRoutes";
 
 const app = express();
 
@@ -23,6 +25,8 @@ app.use("/weight-logs", weightLogRoutes);
 app.use("/foods", foodRoutes);
 app.use("/diaries", diaryRoutes);
 app.use("/uploads", uploadRoutes);
+app.use("/exercises", exerciseRoutes);
+app.use("/workouts", workoutRoutes);
 
 // Health check
 app.get("/health", (_req, res) => {

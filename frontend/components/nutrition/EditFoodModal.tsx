@@ -36,8 +36,8 @@ export function EditFoodModal({
       : servingsFromCustomAmount(customAmount, item.food);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:border dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold">Edit food</h2>

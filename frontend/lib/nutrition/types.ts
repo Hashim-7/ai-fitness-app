@@ -91,3 +91,52 @@ export type DaySummary = {
 };
 
 export type QuantityMode = "servings" | "custom";
+
+export type WeightLog = {
+  id: string;
+  weightKg: number;
+  date: string;
+  createdAt: string;
+};
+
+export type WeightLogsResponse = {
+  data: WeightLog[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type PendingCartItem = {
+  food: Food;
+  servings: number;
+  quantityMode: QuantityMode;
+  customAmount: number;
+};
+
+export type MealPreset = {
+  id: string;
+  name: string;
+  mealType: string;
+  items: {
+    food: Food;
+    servings: number;
+  }[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+};
+
+export type NutritionInsight = {
+  type: "positive" | "warning" | "info";
+  title: string;
+  description: string;
+};
+
+export type StreakData = {
+  currentStreak: number;
+  bestStreak: number;
+  lastLoggedDate: string | null;
+};
+
