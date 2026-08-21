@@ -178,7 +178,7 @@ The AI integration tests require the appropriate GitHub Actions secrets for Gemi
 
 🚧 Active development
 
-**Current milestone — v0.4.0-ai-fitness-analysis**
+**Current milestone — v0.5.0 - untested but complete fullstack app
 
 ### Completed
 
