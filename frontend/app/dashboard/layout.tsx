@@ -1,65 +1,95 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
+import { clearToken, getToken } from "../../lib/api";
+
+const navigation = [
+  {
+    href: "/dashboard",
+    label: "Overview",
+  },
+  {
+    href: "/dashboard/nutrition",
+    label: "Nutrition",
+  },
+  {
+    href: "/dashboard/workouts",
+    label: "Workouts",
+  },
+];
 
 export default function DashboardLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-950">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-zinc-200 bg-white md:flex md:flex-col">
-          <div className="flex h-16 items-center border-b border-zinc-200 px-6">
-            <Link
-              href="/dashboard"
-              className="text-xl font-bold tracking-tight"
-            >
-              NutriTrack
-            </Link>
-          </div>
+}: {
+  children: ReactNode;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
 
-          <nav className="flex flex-1 flex-col gap-1 p-4">
-            <NavLink href="/dashboard">Dashboard</NavLink>
-            <NavLink href="/dashboard/workouts">Workouts</NavLink>
-            <NavLink href="/dashboard/nutrition">Nutrition</NavLink>
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  function handleLogout() {
+    clearToken();
+    router.replace("/login");
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-50">
+      <header className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
+          <Link
+            href="/dashboard"
+            className="text-xl font-bold tracking-tight text-zinc-950"
+          >
+            NutriTrack
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950"
+          >
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <div className="mx-auto flex max-w-7xl">
+        <aside className="hidden w-56 shrink-0 border-r border-zinc-200 bg-white md:block">
+          <nav className="space-y-1 p-4">
+            {navigation.map((item) => {
+              const active =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                    active
+                      ? "bg-zinc-900 text-white"
+                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-4 md:px-8">
-            <div className="md:hidden">
-              <span className="font-bold">NutriTrack</span>
-            </div>
-
-            <div className="ml-auto flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white">
-                U
-              </div>
-
-              <span className="hidden text-sm font-medium sm:block">User</span>
-            </div>
-          </header>
-
-          <main className="flex-1 p-4 md:p-8">{children}</main>
-        </div>
+        <main className="min-w-0 flex-1 p-4 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
-  );
-}
-
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950"
-    >
-      {children}
-    </Link>
   );
 }

@@ -9,7 +9,7 @@ export default function NutritionPage() {
         <h2 className="text-lg font-semibold">Meal logging</h2>
 
         <p className="mt-2 text-sm text-zinc-500">
-          We'll build the meal logging interface here next.
+          We&apos;ll build the meal logging interface here next.
         </p>
       </div>
     </div>
