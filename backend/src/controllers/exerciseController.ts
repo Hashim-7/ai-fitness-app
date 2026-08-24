@@ -19,6 +19,8 @@ class ExerciseController {
 
       return res.status(200).json(exercises);
     } catch (error) {
+      console.error("GET /exercises ERROR:", error);
+
       return res.status(500).json({
         message: "Failed to fetch exercises",
       });

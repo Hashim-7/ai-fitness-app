@@ -24,7 +24,7 @@ router.post("/presign", async (req, res) => {
     });
 
     const uploadUrl = await getSignedUrl(s3, command, {
-      expiresIn: 300, // 5 minutes
+      expiresIn: 300,
     });
 
     res.json({
@@ -32,7 +32,7 @@ router.post("/presign", async (req, res) => {
       key,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Presign error:", error);
 
     res.status(500).json({
       error: "Failed to generate upload URL",

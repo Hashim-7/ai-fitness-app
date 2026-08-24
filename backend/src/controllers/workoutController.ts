@@ -82,6 +82,7 @@ class WorkoutController {
 }
 
 function handleError(error: unknown, res: Response) {
+  console.error("WORKOUT ERROR:", error);
   if (!(error instanceof Error)) {
     return res.status(500).json({
       message: "Internal server error",

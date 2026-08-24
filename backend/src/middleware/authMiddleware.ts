@@ -15,6 +15,13 @@ const authMiddleware = (
   next: NextFunction,
 ) => {
   try {
+    // Allow unauthenticated access for photo upload, meal analysis, and workout form analysis endpoints
+    if (req.path.startsWith('/uploads/presign') ||
+        req.path.startsWith('/diaries/analyse-photo') ||
+        req.path.startsWith('/workouts/analyse-form')) {
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
