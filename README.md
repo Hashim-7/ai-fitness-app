@@ -174,12 +174,6 @@ Frontend
 
 The AI integration tests require the appropriate GitHub Actions secrets for Gemini and AWS.
 
-## Status
-
-🚧 Active development
-
-**Current milestone — v0.5.0 - untested but complete fullstack app
-
 ### Completed
 
 - ✅ Backend authentication and core functionality
@@ -199,10 +193,6 @@ The AI integration tests require the appropriate GitHub Actions secrets for Gemi
 - ✅ Frontend workout logging
 - ✅ Automated backend CI tests
 - ✅ Manual AI integration testing in GitHub Actions
-
-### In Progress
-
-- ⏳ Testing and bug fixing
 
 ## Architecture
 
