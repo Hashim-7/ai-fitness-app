@@ -65,6 +65,7 @@ describe("User Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.email).toBe("new@example.com");
       expect(response.body.username).toBe("testuser");
+      expect(response.body).not.toHaveProperty("password");
     });
 
     it("should update the user's username", async () => {

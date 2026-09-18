@@ -122,13 +122,15 @@ export async function analyseMealPhoto(
 }
 
 export async function uploadMediaToS3(file: File): Promise<string> {
+  const contentType = file.type || "video/mp4";
+
   const presignResult = await apiFetch<{ uploadUrl: string; key: string }>(
     "/uploads/presign",
     {
       method: "POST",
       body: JSON.stringify({
         filename: file.name,
-        contentType: file.type || "application/octet-stream",
+        contentType,
       }),
     },
   );
@@ -136,7 +138,7 @@ export async function uploadMediaToS3(file: File): Promise<string> {
   const uploadRes = await fetch(presignResult.uploadUrl, {
     method: "PUT",
     headers: {
-      "Content-Type": file.type || "application/octet-stream",
+      "Content-Type": contentType,
     },
     body: file,
   });
