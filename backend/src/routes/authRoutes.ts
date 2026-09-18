@@ -14,4 +14,6 @@ router.post("/login", authLimiter, validate(loginSchema), (req, res) =>
   authController.login(req, res),
 );
 
+router.post("/logout", (req, res) => authController.logout(req, res));
+
 export default router;

@@ -23,18 +23,15 @@ const authMiddleware = (
     }
 
     const authHeader = req.headers.authorization;
+    let token: string | undefined = req.cookies?.token;
 
-    if (!authHeader) {
-      return res.status(401).json({
-        message: "Authorization header missing",
-      });
+    if (!token && authHeader) {
+      token = authHeader.split(" ")[1];
     }
-
-    const token = authHeader.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({
-        message: "Token missing",
+        message: "Authorization header missing",
       });
     }
 

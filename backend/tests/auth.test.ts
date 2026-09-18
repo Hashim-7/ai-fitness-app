@@ -165,4 +165,50 @@ describe("Auth Routes", () => {
       expect(response.body.message).toBe("Invalid email or password");
     });
   });
+
+  describe("Cookie sessions and POST /auth/logout", () => {
+    it("should set httpOnly token cookie on login and allow authenticated requests using cookie", async () => {
+      await request(app).post("/auth/register").send({
+        email: "cookieuser@example.com",
+        username: "cookieuser",
+        password: "Password123",
+      });
+
+      const loginRes = await request(app).post("/auth/login").send({
+        email: "cookieuser@example.com",
+        password: "Password123",
+      });
+
+      expect(loginRes.status).toBe(200);
+
+      const cookies = loginRes.headers["set-cookie"];
+      expect(cookies).toBeDefined();
+      const tokenCookie = cookies.find((c: string) => c.startsWith("token="));
+      expect(tokenCookie).toBeDefined();
+      expect(tokenCookie).toContain("HttpOnly");
+
+      // Extract cookie value for request
+      const cookieValue = tokenCookie.split(";")[0];
+
+      // Access protected endpoint using cookie instead of Authorization header
+      const profileRes = await request(app)
+        .get("/users/me")
+        .set("Cookie", [cookieValue]);
+
+      expect(profileRes.status).toBe(200);
+      expect(profileRes.body.email).toBe("cookieuser@example.com");
+    });
+
+    it("should clear token cookie on logout", async () => {
+      const response = await request(app).post("/auth/logout");
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("Logged out successfully");
+
+      const cookies = response.headers["set-cookie"];
+      expect(cookies).toBeDefined();
+      const tokenCookie = cookies.find((c: string) => c.startsWith("token="));
+      expect(tokenCookie).toContain("token=;");
+    });
+  });
 });

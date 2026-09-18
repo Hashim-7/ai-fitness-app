@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
-import { clearToken, getToken } from "../../lib/api";
+import { logout, getToken } from "../../lib/api";
 import { ThemeToggle } from "../../components/ThemeToggle";
 
 const navigation = [
@@ -35,8 +35,8 @@ export default function DashboardLayout({
     }
   }, [router]);
 
-  function handleLogout() {
-    clearToken();
+  async function handleLogout() {
+    await logout();
     router.replace("/login");
   }
 
